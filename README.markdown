@@ -97,3 +97,5 @@ Assertions
 ----------
 
 Available assertions are defined in `inc/assertions.php`. These should be self-explanatory. Perhaps the only thing to note is that there is no vanilla `assert()` function - I opted for `ensure()` instead of monkeying with PHP's own `assert()` implementation.
+
+Usage examples for built-in assertions can be found in `examples/test/TestAssertions.php`. Be sure to check out how ztest uses lambdas to perform tests that would otherwise be pretty clunky.
