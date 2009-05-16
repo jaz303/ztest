@@ -73,5 +73,20 @@ class TestAssertions extends ztest\UnitTestCase
         assert_throws('FooException', function() { throw new FooException; });
         assert_fails(function() { assert_throws('FooException', function() { throw new Exception; }); });
     }
+
+	public function test_output() {
+		assert_output(array(
+			'foo '		=> 'foo',
+			' foo'		=> 'foo',
+			' foo '		=> 'foo',
+			'foo'		=> 'foo'
+		), function($v) { return trim($v); });
+		
+		assert_fails(function() {
+			assert_output(array(
+				'foo'		=> 'foo '
+			), function($v) { return trim($v); });
+		});
+	}
 }
 ?>

@@ -88,6 +88,20 @@ function assert_throws($exception_class, $lambda, $msg = '') {
 }
 
 /**
+ * Wraps the common pattern of having a map of input => expected output that you
+ * wish to check against some function.
+ * 
+ * @param $data_array map of input value => expected output
+ * @param $lambda each input value will be passed to this function and compared
+ *        against expected output.
+ */
+function assert_output($data_array, $lambda) {
+	foreach ($data_array as $input => $expected_output) {
+		assert_equal($expected_output, $lambda($input));
+	}
+}
+
+/**
  * This one's a bit dubious - it tests that an assertion made by the supplied
  * lambda fails. It primarily exists for self-testing the ztest library, and
  * using it causes the displayed assertion stats to be incorrect.
