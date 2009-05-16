@@ -1,4 +1,6 @@
 <?php
+define('ZTEST_VERSION', '0.0.1');
+
 $ztest_manifest = array(
     'exceptions',
     'TestCase',
