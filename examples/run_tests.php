@@ -7,5 +7,9 @@ echo "NOTE: Passed assertions for this suite will be less than total.\n** This i
 
 $suite->require_all(dirname(__FILE__) . '/test');
 $suite->auto_fill();
-$suite->run(new ztest\ConsoleReporter);
+
+$reporter = new ztest\ConsoleReporter;
+$reporter->enable_color();
+
+$suite->run($reporter);
 ?>

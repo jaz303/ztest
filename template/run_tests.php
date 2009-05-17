@@ -18,6 +18,10 @@ $suite->require_all('test');
 // Add non-abstract subclasses of ztest\TestCase as test-cases to be run
 $suite->auto_fill();
 
+// Create a reporter and enable color output
+$reporter = new ztest\ConsoleReporter;
+$reporter->enable_color();
+
 // Go, go, go
-$suite->run(new ztest\ConsoleReporter);
+$suite->run($reporter);
 ?>
