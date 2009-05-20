@@ -32,5 +32,13 @@ class TestMocking extends ztest\UnitTestCase
         ensure(new TestMockingExtendChild instanceof TestMockingExtendParent);
         
     }
+    
+    public function test_construct_returns_mock_instance() {
+        ensure(
+            Mock::generate('TestMockingConstruct')->construct()
+            instanceof
+            TestMockingConstruct
+        );
+    }
 }
 ?>

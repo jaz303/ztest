@@ -39,6 +39,11 @@ class MockSpecification
         }
     }
     
+    public function construct() {
+        $this->write();
+        return new $this->class_name;
+    }
+    
     public function to_php() {
         
         $php = "class {$this->class_name}";
