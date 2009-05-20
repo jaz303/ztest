@@ -21,6 +21,12 @@ class MockSpecification
 {
     private static $specs   = array();
     
+    public static function lookup($instance, $pattern = null) {
+        $out = self::$specs[get_class($instance)];
+        if ($pattern) $out = $out->methods[$pattern];
+        return $out;
+    }
+    
     private $class_name;
     private $superclass     = null;
     private $interfaces     = array();
@@ -47,9 +53,9 @@ class MockSpecification
         return $this;
     }
     
-    public function receives($method_pattern) {
-        $mock_method = new MockMethodSpecification($this, $method_pattern);
-        $this->methods[] = $mock_method;
+    public function receives($method_pattern, $closure = null) {
+        $mock_method = new MockMethodSpecification($this, $method_pattern, $closure);
+        $this->methods[$method_pattern] = $mock_method;
         return $mock_method;
     }
     
@@ -97,7 +103,11 @@ class MockSpecification
         $php .= "        foreach (\$this->method_patterns as \$pattern) {\n";
         $php .= "            if (Mock::method_matches_pattern(\$method, \$pattern)) {\n";
         $php .= "                \$this->memory[] = array(\$method, \$args);\n";
-        $php .= "                return;\n";
+        $php .= "                if (\$closure = MockSpecification::lookup(\$this, \$pattern)->get_closure()) {\n";
+        $php .= "                    return call_user_func_array(\$closure, \$args);\n";
+        $php .= "                } else {\n";
+        $php .= "                    return;\n";
+        $php .= "                }\n";
         $php .= "            }\n";
         $php .= "        }\n";
         $php .= "        throw new ztest\\AssertionFailed(\"Unexpected method '\$method' called\");\n";
@@ -146,14 +156,20 @@ class MockMethodSpecification
 {
     private $mock;
     private $pattern;
+    private $closure;
     
-    public function __construct(MockSpecification $mock, $pattern) {
+    public function __construct(MockSpecification $mock, $pattern, $closure = null) {
         $this->mock = $mock;
         $this->pattern = $pattern;
+        $this->closure = $closure;
     }
     
     public function get_pattern() {
         return $this->pattern;
+    }
+    
+    public function get_closure() {
+        return $this->closure;
     }
     
     public function back() {
