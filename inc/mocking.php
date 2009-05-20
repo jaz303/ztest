@@ -23,6 +23,7 @@ class MockSpecification
     
     private $class_name;
     private $superclass     = null;
+    private $interfaces     = array();
     private $methods        = array();
     
     private $written        = false;
@@ -38,6 +39,11 @@ class MockSpecification
     
     public function extend($superclass) {
         $this->superclass = $superclass;
+        return $this;
+    }
+    
+    public function implement($interface) {
+        $this->interfaces[] = $interface;
         return $this;
     }
     
@@ -70,7 +76,15 @@ class MockSpecification
             $php .= " extends {$this->superclass}";
         }
         
+        if (count($this->interfaces)) {
+            $php .= ' implements ' . implode(', ', $this->interfaces);
+        }
+        
         $php .= " {\n";
+        
+        //
+        // Setup __call() hook to receive all expected methods and throw
+        // AssertionFailed on receiving other methods.
         
         $php .= "    private \$memory = array();\n";
         
@@ -88,6 +102,38 @@ class MockSpecification
         $php .= "        }\n";
         $php .= "        throw new ztest\\AssertionFailed(\"Unexpected method '\$method' called\");\n";
         $php .= "    }\n";
+        
+        //
+        // Now implement any interfaces
+        
+        $iface_methods = array();
+        
+        foreach ($this->interfaces as $iface) {
+            $reflection = new ReflectionClass($iface);
+            foreach ($reflection->getMethods() as $method) {
+                $args = array();
+                foreach ($method->getParameters() as $param) {
+                    $arg = '';
+                    if ($param->isArray()) {
+                        $arg .= 'array ';
+                    } elseif ($pclass = $param->getClass()) {
+                        $arg .= $pclass->getName() . ' ';
+                    }
+                    if ($param->isPassedByReference()) $arg .= '&';
+                    $arg .= '$' . $param->getName();
+                    if ($param->allowsNull()) {
+                        $arg .= ' = null';
+                    } elseif ($param->isOptional()) {
+                        $arg .= ' = ' . var_export($param->getDefaultValue(), true);
+                    }
+                    $args[] = $arg;
+                }
+                $arg_list = implode(', ', $args);
+                $php .= "    public function {$method->getName()}($arg_list) {\n";
+                $php .= "        return \$this->__call('{$method->getName()}', func_get_args());\n";
+                $php .= "    }\n";
+            }
+        }
         
         $php .= "}\n";
         

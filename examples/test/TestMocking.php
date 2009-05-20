@@ -1,4 +1,16 @@
 <?php
+class CMockingThing {}
+
+interface IMockingFoo {
+    public function foo(&$a, array $b, $c = 1, $d = 'bar', $e = null);
+    public function bar(CMockingThing $a = null, $b);
+}
+
+interface IMockingBar {
+    public function baz();
+    public function zab();
+}
+
 class TestMocking extends ztest\UnitTestCase
 {
     public function test_mock_generate_returns_mock_specification() {
@@ -54,6 +66,25 @@ class TestMocking extends ztest\UnitTestCase
     public function test_calling_unexpected_method_fails_test() {
         $obj = Mock::generate()->receives('baz')->construct();
         assert_fails(function() use ($obj) { $obj->bleem(); });
+    }
+    
+    public function test_mock_can_implement_interfaces() {
+        
+        $obj = Mock::generate()
+                ->implement('IMockingFoo')
+                ->implement('IMockingBar')
+                ->receives('baz')
+                ->construct();
+                
+        ensure($obj instanceof IMockingFoo);
+        ensure($obj instanceof IMockingBar);
+        
+        $obj->baz();
+        pass();
+        
+        // this fails because even tho interface defines zab, we don't expect it
+        assert_fails(function() use($obj) { $obj->zab(); });
+        
     }
 }
 ?>
