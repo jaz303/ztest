@@ -15,5 +15,22 @@ class TestMocking extends ztest\UnitTestCase
             Mock::generate()->get_class_name()
         );
     }
+    
+    public function test_writing_class_generates_class_of_same_name() {
+        $class_name = 'TestMocking2';
+        ensure(!class_exists($class_name));
+        Mock::generate($class_name)->write();
+        ensure(class_exists($class_name));
+    }
+    
+    public function test_extending_class_generates_subclass() {
+        
+        Mock::generate('TestMockingExtendParent')->write();
+        Mock::generate('TestMockingExtendChild')->extend('TestMockingExtendParent')->write();
+        
+        ensure(is_subclass_of('TestMockingExtendChild', 'TestMockingExtendParent'));
+        ensure(new TestMockingExtendChild instanceof TestMockingExtendParent);
+        
+    }
 }
 ?>
