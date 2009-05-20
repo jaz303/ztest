@@ -14,6 +14,8 @@ class Mock
 
 class MockSpecification
 {
+    private static $specs   = array();
+    
     private $class_name;
     private $superclass     = null;
     
@@ -21,6 +23,7 @@ class MockSpecification
     
     public function __construct($class_name) {
         $this->class_name = $class_name;
+        self::$specs[$this->class_name] = $this;
     }
     
     public function get_class_name() {
