@@ -53,8 +53,8 @@ class MockSpecification
         return $this;
     }
     
-    public function receives($method_pattern, $closure = null) {
-        $mock_method = new MockMethodSpecification($this, $method_pattern, $closure);
+    public function receives($method_pattern) {
+        $mock_method = new MockMethodSpecification($this, $method_pattern);
         $this->methods[$method_pattern] = $mock_method;
         return $mock_method;
     }
@@ -158,10 +158,9 @@ class MockMethodSpecification
     private $pattern;
     private $closure;
     
-    public function __construct(MockSpecification $mock, $pattern, $closure = null) {
+    public function __construct(MockSpecification $mock, $pattern) {
         $this->mock = $mock;
         $this->pattern = $pattern;
-        $this->closure = $closure;
     }
     
     public function get_pattern() {
@@ -170,6 +169,13 @@ class MockMethodSpecification
     
     public function get_closure() {
         return $this->closure;
+    }
+    
+    public function returning($thing) {
+        if ($thing instanceof Closure) {
+            $this->closure = $thing;
+        }
+        return $this;
     }
     
     public function back() {

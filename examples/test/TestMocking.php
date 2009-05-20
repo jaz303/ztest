@@ -90,7 +90,8 @@ class TestMocking extends ztest\UnitTestCase
     public function test_mock_can_implement_method_using_closure() {
         
         $obj = Mock::generate()
-                ->receives('foo', function($name) { return "my name is $name"; })
+                ->receives('foo')
+                ->returning(function($name) { return "my name is $name"; })
                 ->construct();
                 
         assert_equal('my name is jason', $obj->foo('jason'));
