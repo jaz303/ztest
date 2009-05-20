@@ -40,5 +40,20 @@ class TestMocking extends ztest\UnitTestCase
             TestMockingConstruct
         );
     }
+    
+    public function test_receives_creates_mock_method_definition() {
+        ensure(Mock::generate()->receives('foo') instanceof MockMethodSpecification);
+    }
+    
+    public function test_mock_method_can_be_called() {
+        $obj = Mock::generate()->receives('bar')->construct();
+        $obj->bar();
+        pass();
+    }
+    
+    public function test_calling_unexpected_method_fails_test() {
+        $obj = Mock::generate()->receives('baz')->construct();
+        assert_fails(function() use ($obj) { $obj->bleem(); });
+    }
 }
 ?>

@@ -10,6 +10,11 @@ class Mock
         }
         return new MockSpecification($class_name);
     }
+    
+    public static function method_matches_pattern($method, $pattern) {
+        // TODO: support wildcards
+        return strcmp($method, $pattern) === 0;
+    }
 }
 
 class MockSpecification
@@ -18,6 +23,7 @@ class MockSpecification
     
     private $class_name;
     private $superclass     = null;
+    private $methods        = array();
     
     private $written        = false;
     
@@ -34,6 +40,15 @@ class MockSpecification
         $this->superclass = $superclass;
         return $this;
     }
+    
+    public function receives($method_pattern) {
+        $mock_method = new MockMethodSpecification($this, $method_pattern);
+        $this->methods[] = $mock_method;
+        return $mock_method;
+    }
+    
+    //
+    //
     
     public function write() {
         if (!$this->written) {
@@ -57,10 +72,50 @@ class MockSpecification
         
         $php .= " {\n";
         
+        $php .= "    private \$memory = array();\n";
+        
+        $patterns = array();
+        foreach ($this->methods as $m) $patterns[] = $m->get_pattern();
+        
+        $php .= "    private \$method_patterns = " . var_export($patterns, true) . ";\n";
+        
+        $php .= "    public function __call(\$method, \$args) {\n";
+        $php .= "        foreach (\$this->method_patterns as \$pattern) {\n";
+        $php .= "            if (Mock::method_matches_pattern(\$method, \$pattern)) {\n";
+        $php .= "                \$this->memory[] = array(\$method, \$args);\n";
+        $php .= "                return;\n";
+        $php .= "            }\n";
+        $php .= "        }\n";
+        $php .= "        throw new ztest\\AssertionFailed(\"Unexpected method '\$method' called\");\n";
+        $php .= "    }\n";
+        
         $php .= "}\n";
         
         return $php;
         
+    }
+}
+
+class MockMethodSpecification
+{
+    private $mock;
+    private $pattern;
+    
+    public function __construct(MockSpecification $mock, $pattern) {
+        $this->mock = $mock;
+        $this->pattern = $pattern;
+    }
+    
+    public function get_pattern() {
+        return $this->pattern;
+    }
+    
+    public function back() {
+        return $this->mock;
+    }
+    
+    public function __call($method, $args) {
+        return call_user_func_array(array($this->mock, $method), $args);
     }
 }
 ?>
